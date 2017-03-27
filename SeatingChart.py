@@ -48,3 +48,4 @@ class SeatingChart:
         """交换学号为x， y的两名同学的位置"""
         i, j = self._pos.index(x), self._pos.index(y)
         self._pos[i], self._pos[j] = self._pos[j], self._pos[i]
+
