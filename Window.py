@@ -8,20 +8,48 @@ LOAD_DEFAULT_FILE = 'name.txt'
 
 
 class STText(Qw.QWidget):
-    def __init__(self, m, n):
-        super().__init__()
+    def __init__(self, m, n, parent):
+        super().__init__(parent)
+        self.name_list = []
         self.seat = SeatingChart(m, n)
+        self.mk_layout()
+
+    def __getitem__(self, i):
+        return [self.name_list[x] if self.name_list else str(x) for x in self.seat[i]]
+
+    def __str__(self):
+        return str(self.seat)
+
+    def mk_layout(self):
+        layout = Qw.QGridLayout(self)
+        for i in range(self.seat.m):
+            for j in range(self.seat.n):
+                label = Qw.QLabel(self)
+                label.setText(self[i][j])
+                layout.addWidget(label, i, j)
+        self.setLayout(layout)
+
+    def shuffle(self):
+        self.seat.shuffle()
+        self.mk_layout()
+
+    def load_name(self, names):
+        if len(names) >= len(self.seat):
+            self.name_list = names
+        else:
+            raise ValueError("名单长度不足")
 
 
 class Window(Qw.QMainWindow):
-    def __init__(self):
+    def __init__(self, m, n):
         super().__init__()
-        self.text = STText(6, 8)
-        self.make_user_interface()
+        self.name_list = []
+        self.cent_setting = {'m': m, 'n': n, 'font': self.font()}
+        self.make_user_interface(m, n)
         self.setWindowTitle("RSCG")
         self.show()
 
-    def make_user_interface(self):
+    def make_user_interface(self, m, n):
         # 创建状态栏
         self.statusBar()
 
@@ -33,11 +61,11 @@ class Window(Qw.QMainWindow):
         save_action = Qw.QAction('保存', self)
         save_action.setShortcut('Ctrl+S')
         save_action.setStatusTip("将座位表保存到文件")
-        save_action.triggered.connect(lambda: self.save(SAVE_DEFAULT_FILE))
+        save_action.triggered.connect(self.save)
         load_action = Qw.QAction('载入', self)
         load_action.setShortcut('Ctrl+O')
         load_action.setStatusTip("从文件载入名单")
-        load_action.triggered.connect(lambda: self.load(LOAD_DEFAULT_FILE))
+        load_action.triggered.connect(self.load)
         set_action = Qw.QAction('设置', self)
         set_action.setShortcut('Ctrl+S')
         set_action.setStatusTip("设置")
@@ -68,24 +96,37 @@ class Window(Qw.QMainWindow):
         self.addToolBar(Qt.LeftToolBarArea, file_tools)
         self.addToolBar(Qt.LeftToolBarArea, help_tools)
 
+        self.refresh()
+
     def refresh(self):
-        seat = SeatingChart(6, 8)
-        layout = Qw.QGridLayout()
-        cent_widget = Qw.QWidget()
-        for i in range(seat.m):
-            for j in range(seat.n):
-                layout.addWidget(Qw.QLabel(seat[i][j].name), i, j)
-        cent_widget.setLayout(layout)
-        self.setCentralWidget(cent_widget)
+        seat = STText(self.cent_setting['m'], self.cent_setting['n'], self)
+        seat.setFont(self.cent_setting['font'])
+        self.setCentralWidget(seat)
+        print(seat)
+        self.show()
 
-    def save(self, file_name):
-        pass
+    def save(self):
+        file_dia = Qw.QFileDialog(self)
+        file_dia.setAcceptMode(file_dia.AcceptSave)
+        file = file_dia.getSaveFileName(self)
+        if file[0]:
+            with open(file[0], 'w'):
+                open(file[0], 'w').write(self.centralWidget().__str__())
 
-    def load(self, file_name):
-        pass
+    def load(self):
+        file_dia = Qw.QFileDialog(self)
+        file_dia.setAcceptMode(file_dia.AcceptOpen)
+        file = file_dia.getOpenFileName(self)
+        if file[0]:
+            with open(file[0], 'r'):
+                self.centralWidget().set_name(open(file[0], 'r').read().split())
 
     def setting(self):
-        pass
+        font_dia = Qw.QFontDialog(self)
+        font, ok = font_dia.getFont(self)
+        if ok:
+            self.cent_setting['font'] = font
+            self.centralWidget().set(self.cent_setting)
 
     def show_about(self):
         pass
@@ -93,6 +134,5 @@ class Window(Qw.QMainWindow):
 
 if __name__ == '__main__':
     app = Qw.QApplication(sys.argv)
-    win = Window()
+    win = Window(6, 8)
     sys.exit(app.exec_())
-
