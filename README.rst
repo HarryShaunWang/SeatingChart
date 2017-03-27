@@ -4,9 +4,9 @@ SeatingChart
 
 一个用来生成随即座位表的小程序，拥有一个简单的GUI界面。使用PyQt5编写。
 
-需要安装Python和PyQt5，点击这里下载： 传送门一_。
+需要安装Python和PyQt5，点击这里下载： 传送门_。
 
-.. _传送门一: www.python.org
+.. _传送门: www.python.org
 
 已实现的功能有如下:
 
@@ -15,5 +15,5 @@ SeatingChart
 * 选择字体：选择用于显示座位表的字体，方便用于预览
 
 :版本:        1.0
-:许可证:      GPLv3
+:许可协议:    GPLv3
 :作者:        黄融
