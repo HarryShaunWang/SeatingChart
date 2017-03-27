@@ -207,3 +207,4 @@ if __name__ == '__main__':
     root.bind('<Return>', (lambda event: chart.save_to_file(e_ent.get())))
     root.wait_window()
     root.mainloop()
+
