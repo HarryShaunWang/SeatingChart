@@ -12,30 +12,40 @@ class STText(Qw.QWidget):
         super().__init__(parent)
         self.name_list = []
         self.seat = SeatingChart(m, n)
-        self.mk_layout()
+        layout = Qw.QGridLayout(self)
+        for i in range(self.seat.m):
+            for j in range(self.seat.n):
+                layout.addWidget(Qw.QLabel(self[i][j]), i, j)
+        self.setLayout(layout)
 
     def __getitem__(self, i):
         return [self.name_list[x] if self.name_list else str(x) for x in self.seat[i]]
 
-    def __str__(self):
+    def __repr__(self):
         return str(self.seat)
 
-    def mk_layout(self):
-        layout = Qw.QGridLayout(self)
+    def __str__(self):
+        s = ''
         for i in range(self.seat.m):
             for j in range(self.seat.n):
-                label = Qw.QLabel(self)
-                label.setText(self[i][j])
-                layout.addWidget(label, i, j)
-        self.setLayout(layout)
+                s += self[i][j]
+                if i % 2 == 1 and i + 1 != self.seat.n:
+                    s += '||'
+        return s
 
     def shuffle(self):
         self.seat.shuffle()
-        self.mk_layout()
+        for i in range(self.seat.m):
+            for j in range(self.seat.n):
+                self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
 
-    def load_name(self, names):
+    def set_name(self, names: list):
+        names.insert(0, '空桌子')
         if len(names) >= len(self.seat):
             self.name_list = names
+            for i in range(self.seat.m):
+                for j in range(self.seat.n):
+                    self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
         else:
             raise ValueError("名单长度不足")
 
@@ -44,12 +54,12 @@ class Window(Qw.QMainWindow):
     def __init__(self, m, n):
         super().__init__()
         self.name_list = []
-        self.cent_setting = {'m': m, 'n': n, 'font': self.font()}
-        self.make_user_interface(m, n)
+        self.seat = STText(m, n, self)
+        self.make_user_interface()
         self.setWindowTitle("RSCG")
         self.show()
 
-    def make_user_interface(self, m, n):
+    def make_user_interface(self):
         # 创建状态栏
         self.statusBar()
 
@@ -57,7 +67,7 @@ class Window(Qw.QMainWindow):
         new_action = Qw.QAction('新建', self)
         new_action.setShortcut('Ctrl+N')
         new_action.setStatusTip("新建一张座位表")
-        new_action.triggered.connect(self.refresh)
+        new_action.triggered.connect(self.seat.shuffle)
         save_action = Qw.QAction('保存', self)
         save_action.setShortcut('Ctrl+S')
         save_action.setStatusTip("将座位表保存到文件")
@@ -79,7 +89,6 @@ class Window(Qw.QMainWindow):
         about_action.triggered.connect(self.show_about)
 
         # 创建工具栏
-        from PyQt5.QtCore import Qt
         file_tools = Qw.QToolBar('File')
         file_tools.setMovable(False)
         file_tools.addAction(new_action)
@@ -93,40 +102,30 @@ class Window(Qw.QMainWindow):
         file_tools.addAction(quit_action)
         help_tools.addAction(about_action)
 
+        from PyQt5.QtCore import Qt
         self.addToolBar(Qt.LeftToolBarArea, file_tools)
         self.addToolBar(Qt.LeftToolBarArea, help_tools)
 
-        self.refresh()
-
-    def refresh(self):
-        seat = STText(self.cent_setting['m'], self.cent_setting['n'], self)
-        seat.setFont(self.cent_setting['font'])
-        self.setCentralWidget(seat)
-        print(seat)
-        self.show()
+        # 创建座位表
+        self.setCentralWidget(self.seat)
 
     def save(self):
         file_dia = Qw.QFileDialog(self)
-        file_dia.setAcceptMode(file_dia.AcceptSave)
         file = file_dia.getSaveFileName(self)
-        if file[0]:
-            with open(file[0], 'w'):
-                open(file[0], 'w').write(self.centralWidget().__str__())
+        if file[0] and open(file[0], 'w').writable():
+            open(file[0], 'w').write(self.centralWidget().__str__())
 
     def load(self):
         file_dia = Qw.QFileDialog(self)
-        file_dia.setAcceptMode(file_dia.AcceptOpen)
         file = file_dia.getOpenFileName(self)
-        if file[0]:
-            with open(file[0], 'r'):
-                self.centralWidget().set_name(open(file[0], 'r').read().split())
+        if file[0] and open(file[0], 'r').readable():
+            self.centralWidget().set_name(open(file[0], 'r').read().split())
 
     def setting(self):
         font_dia = Qw.QFontDialog(self)
         font, ok = font_dia.getFont(self)
         if ok:
-            self.cent_setting['font'] = font
-            self.centralWidget().set(self.cent_setting)
+            self.centralWidget().setFont(font)
 
     def show_about(self):
         pass
