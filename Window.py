@@ -1,12 +1,7 @@
 #!/usr/bin/env python
 import sys
-
 import PyQt5.QtWidgets as Qw
-
 from SeatingChart import SeatingChart
-
-SAVE_DEFAULT_FILE = 'seat.txt'
-LOAD_DEFAULT_FILE = 'name.txt'
 
 
 class STText(Qw.QWidget):
@@ -116,6 +111,7 @@ class Window(Qw.QMainWindow):
 
     def load(self):
         file_dia = Qw.QFileDialog(self)
+        file_dia.setWindowTitle('读取名单')
         file = file_dia.getOpenFileName(self)
         if file[0] and open(file[0], 'r').readable():
             self.centralWidget().set_name(open(file[0], 'r').read().split())
@@ -128,13 +124,14 @@ class Window(Qw.QMainWindow):
 
     def show_about(self):
         message = Qw.QMessageBox(self)
-        message.setWindowTitle('About')
-        message.setText("""\
-RSTG
-一个简单的随机座位表生成器
-座位表程序使用Python编写
-GUI使用PyQt5编写
-""")
+        message.setWindowTitle('关于')
+        message.setIcon()
+        show_text = ("""
+        一个简单的随机座位表生成器
+        座位表程序使用Python编写
+        GUI使用PyQt5编写
+        """)
+        message.setText(show_text)
         message.show()
 
 
