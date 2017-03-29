@@ -9,7 +9,7 @@ class SeatingChart:
         self._pos = [x for x in range(len(self))]
         self.shuffle()
 
-    def __repr__(self):
+    def __str__(self):
         """返回用学号表示的座位表"""
         s = ''
         for i in range(self.m):
@@ -17,10 +17,6 @@ class SeatingChart:
                 s += str(self[i][j]).rjust(4)
             s += '\n'
         return s
-
-    def __str__(self):
-        """返回用学号表示的座位表"""
-        return self.__str__()
 
     def __len__(self):
         """返回座位的总数"""
@@ -31,13 +27,13 @@ class SeatingChart:
         return self._pos[i * self.n: (i + 1) * self.n]
 
     def shuffle(self):
-        """打乱座位表"""
+        """随机打乱座位表"""
         from random import shuffle
         shuffle(self._pos)
         self.maintain()  # 恢复自定义规则
 
     def maintain(self):
-        """一些自定义规则"""
+        """恢复自定义规则"""
         from random import randrange
         tmp = self[1][randrange(0, self.n)]
         self.swap_num(20, tmp)
@@ -52,4 +48,3 @@ class SeatingChart:
         """交换学号为x， y的两名同学的位置"""
         i, j = self._pos.index(x), self._pos.index(y)
         self._pos[i], self._pos[j] = self._pos[j], self._pos[i]
-
