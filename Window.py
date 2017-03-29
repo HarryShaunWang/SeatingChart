@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import sys
-from SeatingChart import SeatingChart
+
 import PyQt5.QtWidgets as Qw
+
+from SeatingChart import SeatingChart
 
 SAVE_DEFAULT_FILE = 'seat.txt'
 LOAD_DEFAULT_FILE = 'name.txt'
@@ -40,14 +42,18 @@ class STText(Qw.QWidget):
                 self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
 
     def set_name(self, names: list):
-        names.insert(0, '空桌子')
-        if len(names) >= len(self.seat):
-            self.name_list = names
-            for i in range(self.seat.m):
-                for j in range(self.seat.n):
-                    self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
-        else:
-            raise ValueError("名单长度不足")
+        try:
+            names.insert(0, '空桌子')
+            if len(names) >= len(self.seat):
+                self.name_list = names
+                for i in range(self.seat.m):
+                    for j in range(self.seat.n):
+                        self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
+            else:
+                raise ValueError("名单长度不足")
+        except ValueError as err:
+            for s in err.args:
+                print(s)
 
 
 class Window(Qw.QMainWindow):
@@ -59,34 +65,27 @@ class Window(Qw.QMainWindow):
         self.setWindowTitle("RSCG")
         self.show()
 
+    class NormalAction(Qw.QAction):
+        def __init__(self, text, short_cut, status_tip, trig, parent):
+            Qw.QAction.__init__(self, text, parent)
+            if short_cut:
+                self.setShortcut(short_cut)
+            if status_tip:
+                self.setStatusTip(status_tip)
+            if trig:
+                self.triggered.connect(trig)
+
     def make_user_interface(self):
         # 创建状态栏
         self.statusBar()
 
         # 创建动作
-        new_action = Qw.QAction('新建', self)
-        new_action.setShortcut('Ctrl+N')
-        new_action.setStatusTip("新建一张座位表")
-        new_action.triggered.connect(self.seat.shuffle)
-        save_action = Qw.QAction('保存', self)
-        save_action.setShortcut('Ctrl+S')
-        save_action.setStatusTip("将座位表保存到文件")
-        save_action.triggered.connect(self.save)
-        load_action = Qw.QAction('载入', self)
-        load_action.setShortcut('Ctrl+O')
-        load_action.setStatusTip("从文件载入名单")
-        load_action.triggered.connect(self.load)
-        set_action = Qw.QAction('设置', self)
-        set_action.setShortcut('Ctrl+S')
-        set_action.setStatusTip("设置")
-        set_action.triggered.connect(self.setting)
-        quit_action = Qw.QAction('退出', self)
-        quit_action.setShortcut('Ctrl+Q')
-        quit_action.setStatusTip("退出程序")
-        quit_action.triggered.connect(Qw.qApp.quit)
-        about_action = Qw.QAction('关于', self)
-        about_action.setStatusTip("显示关于")
-        about_action.triggered.connect(self.show_about)
+        new_action = self.NormalAction('新建', 'Ctrl+N', "新建一张座位表", self.seat.shuffle, self)
+        save_action = self.NormalAction('保存', 'Ctrl+S', "将座位表保存到文件", self.save, self)
+        load_action = self.NormalAction('载入', 'Ctrl+O', "从文件载入名单", self.load, self)
+        set_action = self.NormalAction('设置', 'Ctrl+S', "设置字体", self.set_font, self)
+        quit_action = self.NormalAction('退出', 'Ctrl+Q', "退出程序", Qw.qApp.quit, self)
+        about_action = self.NormalAction('关于', None, "显示关于", self.show_about, self)
 
         # 创建工具栏
         file_tools = Qw.QToolBar('File')
@@ -121,14 +120,22 @@ class Window(Qw.QMainWindow):
         if file[0] and open(file[0], 'r').readable():
             self.centralWidget().set_name(open(file[0], 'r').read().split())
 
-    def setting(self):
+    def set_font(self):
         font_dia = Qw.QFontDialog(self)
         font, ok = font_dia.getFont(self)
         if ok:
             self.centralWidget().setFont(font)
 
     def show_about(self):
-        pass
+        message = Qw.QMessageBox(self)
+        message.setWindowTitle('About')
+        message.setText("""\
+RSTG
+一个简单的随机座位表生成器
+座位表程序使用Python编写
+GUI使用PyQt5编写
+""")
+        message.show()
 
 
 if __name__ == '__main__':
