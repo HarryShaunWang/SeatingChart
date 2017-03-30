@@ -32,30 +32,25 @@ class STText(QWidgets.QWidget):
                 if j % 2 == 1 and j + 1 != self.seat.n:
                     s += '||'
             s += '\n'
-        print(s)
         return s
 
     def shuffle(self):
-        """随机打乱作为"""
+        """随机打乱座位"""
         self.seat.shuffle()
         for i in range(self.seat.m):
             for j in range(self.seat.n):
                 self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
 
     def set_name(self, names):
-        """"设置名单"""
-        try:
-            names.insert(0, '空桌子')
-            if len(names) >= len(self.seat):
-                self.name_list = names[0: len(self.seat)]
-                for i in range(self.seat.m):
-                    for j in range(self.seat.n):
-                        self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
-            else:
-                raise ValueError("名单长度不足")
-        except ValueError as err:
-            for s in err.args:
-                print(s)
+        """"设置班级名单"""
+        names.insert(0, '空桌子')
+        if len(names) >= len(self.seat):
+            self.name_list = names[0: len(self.seat)]
+            for i in range(self.seat.m):
+                for j in range(self.seat.n):
+                    self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
+        else:
+            raise ValueError("名单长度不足")
 
 
 class Window(QWidgets.QMainWindow):
@@ -116,7 +111,7 @@ class Window(QWidgets.QMainWindow):
         """显示一个保存文件的窗口"""
         file_dia = QWidgets.QFileDialog(self)
         file_dia.setAcceptMode(file_dia.AcceptSave)
-        file = file_dia.getSaveFileName(self, "保存文件", self.windowFilePath(), "文本文件(*.txt)")
+        file = file_dia.getSaveFileName(self, "保存文件", self.windowFilePath(), "文本文件(*.txt);;所有文件(*.*)")
         try:
             if file[0]:
                 open(file[0], 'w').write(self.centralWidget().__str__())
@@ -139,15 +134,24 @@ class Window(QWidgets.QMainWindow):
         """显示一个载入文件的系统"""
         file_dia = QWidgets.QFileDialog(self)
         file_dia.setAcceptMode(file_dia.AcceptOpen)
-        file = file_dia.getOpenFileName(self, "读取名单", self.windowFilePath(), "文本文件(*.txt)")
+        file = file_dia.getOpenFileName(self, "读取名单", self.windowFilePath(), "文本文件(*.txt);;所有文件(*.*)")
         try:
-            if file[0] and open(file[0], 'r').readable():
+            if file[0]:
                 names = open(file[0], 'r').read().split()
                 self.centralWidget().set_name(names)
                 self.setWindowFilePath(file[0])
-        except ValueError:
+        except ValueError as err:
             err_message = QWidgets.QErrorMessage(self)
-            err_message.showMessage("这不是一个有效的文本文件！")
+            error = ""
+            for s in err.args:
+                error += s
+            err_message.showMessage("{err}！".format(err=error))
+        except PermissionError as err:
+            err_message = QWidgets.QErrorMessage(self)
+            error = ""
+            for s in err.args:
+                error += s
+            err_message.showMessage("{err}！".format(err=error))
 
     def set_font(self):
         """设置显示座位表的字体"""
