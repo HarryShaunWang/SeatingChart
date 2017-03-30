@@ -50,7 +50,7 @@ class STText(QWidgets.QWidget):
                 for j in range(self.seat.n):
                     self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
         else:
-            raise ValueError("名单长度不足")
+            raise ValueError("名单长度不足{num}".format(num=len(self.seat)))
 
 
 class Window(QWidgets.QMainWindow):
@@ -167,9 +167,10 @@ class Window(QWidgets.QMainWindow):
         message.setIcon(message.Information)
         show_text = ("""
         一个简单的随机座位表生成器
-        座位表程序使用Python编写
-        GUI使用PyQt5编写
-        该程序在GPLv3协议下发布
+        程序全部使用Python编写
+        GUI部分使用PyQt5编写
+        该程序在GPLv3协议下分发
+        详情请参见README
         """)
         message.setText(show_text)
         message.show()
