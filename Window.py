@@ -1,151 +1,183 @@
 #!/usr/bin/env python
-from tkinter import *
+import sys
+import PyQt5.QtWidgets as QWidgets
+import PyQt5.QtCore as QCore
 from SeatingChart import SeatingChart
 
-LABEL_FONT = ('times', 20, 'normal')
-TEXT_FONT = ('courier', 28, 'normal')
-BUTTON_FONT = ('times', 16, 'bold')
-SAVE_DEFAULT_FILE = 'seat.txt'
-LOAD_DEFAULT_FILE = 'name.txt'
 
+class STText(QWidgets.QWidget):
+    """用来显示座位表，继承QWidget"""
 
-class BeautifulButton(Button):
-    """一种稍加美化的按钮"""
+    def __init__(self, m, n, parent):
+        """座位表有m行n列"""
+        super().__init__(parent)
+        self.seat = SeatingChart(m, n)
+        self.name_list = []  # 名单初始时为空， name_list[x] => 学号为x的同学的名字
+        layout = QWidgets.QGridLayout(self)
+        for i in range(self.seat.m):
+            for j in range(self.seat.n):
+                layout.addWidget(QWidgets.QLabel(self[i][j]), i, j)
+        self.setLayout(layout)
 
-    def __init__(self, master=None, **config):
-        Button.__init__(self, master=master, **config)
-        self.config(heigh=1, width=12)
-        self.config(font=BUTTON_FONT)
-
-
-class STText(SeatingChart, Text):
-    """用部件保存并且显示一个座位表 """
-
-    def __init__(self, m, n, master=None, **config):
-        SeatingChart.__init__(self, m, n)
-        Text.__init__(self, master, **config)
-        self._a = []
-        self.get_name(use='default')
-        self.config(font=TEXT_FONT)
-        self.config(heigh=12, width=82)
-        self.refresh()
+    def __getitem__(self, i):
+        """返回第i行同学的名单"""
+        return [(self.name_list[x] if self.name_list else str(x)) for x in self.seat[i]]
 
     def __str__(self):
-        s = ""
-        for i in range(self.m):
-            for j in range(self.n):
-                name = self._a[self[i][j]] if self._a else str(self[i][j])
-                s += (8 - len(name) * 2) * ' ' + name
-                if j % 2 == 1 and j + 1 != self.n:
+        """返回可视化的座位表"""
+        s = ''
+        for i in range(self.seat.m):
+            for j in range(self.seat.n):
+                s += self[i][j].rjust(4)
+                if j % 2 == 1 and j + 1 != self.seat.n:
                     s += '||'
             s += '\n'
         return s
 
-    def __len__(self):
-        return SeatingChart.__len__(self)
+    def shuffle(self):
+        """随机打乱座位"""
+        self.seat.shuffle()
+        for i in range(self.seat.m):
+            for j in range(self.seat.n):
+                self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
 
-    def refresh(self):
-        """随机打乱座位顺序并显示在屏幕上"""
-        self.shuffle()
-        self.config(state=NORMAL)
-        self.delete('0.0', END)
-        self.insert('0.0', self.__str__())
-        self.config(state=DISABLED)
-
-    def get_name(self, file_name='name.txt', **config):
-        """从文件file_name中读取一份名单
-        若名单长度不足总人数则显示一个错误，否则读取名单中前N的名字
-        名单中名字出现的顺序应该对应学号的顺序"""
-        import os
-        from tkinter.messagebox import showerror
-        if os.path.exists(file_name):
-            name = open(file_name, 'r').read().split()
-            name.insert(0, "空桌子")
-            if len(name) >= len(self):
-                self._a = name
-                self.refresh()
-            else:
-                showerror(title='错误', message="文件 %s 中人数不足！" % file_name)
+    def set_name(self, names):
+        """"设置班级名单"""
+        names.insert(0, '空桌子')
+        if len(names) >= len(self.seat):
+            self.name_list = names[0: len(self.seat)]
+            for i in range(self.seat.m):
+                for j in range(self.seat.n):
+                    self.layout().itemAtPosition(i, j).widget().setText(self[i][j])
         else:
-            if 'use' not in config:
-                showerror(title='错误', message="%s 不存在！" % file_name)
-
-    def save_to_file(self, file_name='seat.txt'):
-        """把座位表以可读的形式保存到file_name中"""
-        from tkinter.messagebox import showinfo, askyesno
-        import os
-        if not os.path.exists(file_name) or askyesno(title='确定', message="%s 已经存在，是否覆盖？" % file_name):
-            f_out = open(file_name, 'w')
-            f_out.write(str(self))
-            showinfo(title='保存成功', message='座位已经保存到 %s 中！' % file_name)
-            f_out.close()
+            raise ValueError("名单长度不足{num}".format(num=len(self.seat)))
 
 
-class _FileWindow(Toplevel):
-    """显示文件交互的窗口，包括一行消息，一个输入框，一个行为按钮，一个取消按钮"""
+class Window(QWidgets.QMainWindow):
+    def __init__(self, m, n):
+        """窗口中座位表有m行n列"""
+        super().__init__()
+        self.seat = STText(m, n, self)
+        self.setWindowTitle('随机座位生成器')
+        self.setWindowState(QCore.Qt.WindowMaximized)
+        self.make_user_interface()
+        self.show()
 
-    def __init__(self, master):
-        Toplevel.__init__(self, master=master)
-        Label(self, text="输入文件名", font=LABEL_FONT).pack(expand=YES, fill=X)  # 文字说明
-        self.file_name = Entry(self, font=LABEL_FONT)  # 输入框
-        self.file_name.pack(expand=YES, fill=BOTH)
-        self.file_name.focus()
-        self.act_but = BeautifulButton(self)  # 行为按钮
-        self.act_but.pack(side=LEFT, fill=X)
-        BeautifulButton(self, text='取消', command=self.destroy).pack(side=RIGHT, fill=X)  # 取消按钮
-        self.bind('<Return>', lambda event: self.active(self.file_name.get()))
-        self.grab_set()
+    class NormalAction(QWidgets.QAction):
+        """打包过的QAction类"""
 
-    def active(self, file_name): pass
+        def __init__(self, text, short_cut, status_tip, trig, parent):
+            QWidgets.QAction.__init__(self, text, parent)
+            if short_cut:
+                self.setShortcut(short_cut)
+            if status_tip:
+                self.setStatusTip(status_tip)
+            if trig:
+                self.triggered.connect(trig)
 
+    def make_user_interface(self):
+        # 创建状态栏
+        self.statusBar()
 
-class SaveWindow(_FileWindow):
-    """保存窗口，把名字保存到文件"""
+        # 创建动作
+        new_action = self.NormalAction('新建', 'Ctrl+N', "新建一张座位表", self.seat.shuffle, self)
+        save_action = self.NormalAction('保存', 'Ctrl+S', "将座位表保存到文件", self.save, self)
+        load_action = self.NormalAction('载入', 'Ctrl+O', "从文件载入名单", self.load, self)
+        set_action = self.NormalAction('设置', 'Ctrl+S', "设置字体，建议中文26号，数字48号", self.set_font, self)
+        quit_action = self.NormalAction('退出', 'Ctrl+Q', "退出程序", QWidgets.qApp.quit, self)
+        about_action = self.NormalAction('关于', None, "显示关于", self.show_about, self)
 
-    def __init__(self, master):
-        _FileWindow.__init__(self, master)
-        self.title('保存到文件')
-        self.act_but.config(text='保存', command=lambda: self.active(self.file_name.get()))
-        self.file_name.insert(0, SAVE_DEFAULT_FILE)
-        self.file_name.select_range(0, END)
+        # 创建工具栏
+        file_tools = QWidgets.QToolBar('File')
+        file_tools.setMovable(False)
+        file_tools.addAction(new_action)
+        file_tools.addAction(save_action)
+        file_tools.addAction(load_action)
+        file_tools.addAction(set_action)
+        file_tools.addSeparator()
 
-    def active(self, file_name):
-        chart.save_to_file(file_name)
-        self.destroy()
+        help_tools = QWidgets.QToolBar('Help')
+        help_tools.setMovable(False)
+        file_tools.addAction(quit_action)
+        help_tools.addAction(about_action)
 
+        self.addToolBar(QCore.Qt.LeftToolBarArea, file_tools)
+        self.addToolBar(QCore.Qt.LeftToolBarArea, help_tools)
 
-class LoadWindow(_FileWindow):
-    """载入窗口，加载姓名"""
+        # 创建座位表
+        self.setCentralWidget(self.seat)
 
-    def __init__(self, master):
-        _FileWindow.__init__(self, master)
-        self.title('从文件读取')
-        self.act_but.config(text='读取', command=lambda: self.active(self.file_name.get()))
-        self.file_name.insert(0, LOAD_DEFAULT_FILE)
-        self.file_name.select_range(0, END)
+    def save(self):
+        """显示一个保存文件的窗口"""
+        file_dia = QWidgets.QFileDialog(self)
+        file_dia.setAcceptMode(file_dia.AcceptSave)
+        file = file_dia.getSaveFileName(self, "保存文件", self.windowFilePath(), "文本文件(*.txt);;所有文件(*.*)")
+        try:
+            if file[0]:
+                open(file[0], 'w').write(self.centralWidget().__str__())
+                self.setWindowFilePath(file[0])
+                show_message = QWidgets.QMessageBox(self)
+                show_message.setWindowTitle('完成')
+                show_message.setIcon(show_message.Information)
+                show_message.setText("文件已成功保存到{file_name}。".format(file_name=file[0]))
+                show_message.show()
+        except IOError as err:
+            err_message = QWidgets.QErrorMessage(self)
+            err_message.setWindowTitle(err.filename)
+            err_message.showMessage("{err}\n这不是一个有效的文件！".format(err=err.args))
+        except PermissionError as err:
+            err_message = QWidgets.QErrorMessage(self)
+            err_message.setWindowTitle(err.filename)
+            err_message.showMessage("{err}\n这不是一个有效的文件！".format(err=err.strerror))
 
-    def active(self, file_name):
-        chart.get_name(file_name)
-        self.destroy()
+    def load(self):
+        """显示一个载入文件的系统"""
+        file_dia = QWidgets.QFileDialog(self)
+        file_dia.setAcceptMode(file_dia.AcceptOpen)
+        file = file_dia.getOpenFileName(self, "读取名单", self.windowFilePath(), "文本文件(*.txt);;所有文件(*.*)")
+        try:
+            if file[0]:
+                names = open(file[0], 'r').read().split()
+                self.centralWidget().set_name(names)
+                self.setWindowFilePath(file[0])
+        except ValueError as err:
+            err_message = QWidgets.QErrorMessage(self)
+            error = ""
+            for s in err.args:
+                error += s
+            err_message.showMessage("{err}！".format(err=error))
+        except PermissionError as err:
+            err_message = QWidgets.QErrorMessage(self)
+            error = ""
+            for s in err.args:
+                error += s
+            err_message.showMessage("{err}！".format(err=error))
 
+    def set_font(self):
+        """设置显示座位表的字体"""
+        font_dia = QWidgets.QFontDialog(self)
+        font, ok = font_dia.getFont(self.centralWidget().font(), self)
+        if ok:
+            self.centralWidget().setFont(font)
 
-def show_about():
-    """显示关于信息"""
-    about = Toplevel()
-    about.title('关于')
-    show_txt = ("""
-    一个简单的随机座位生成器。
-    由Python3编写
-    使用Tk图形库
-    """)
-    Label(about, text=show_txt, heigh=24).pack(fill=X)
-    but = BeautifulButton(about, text='确定', command=about.destroy)
-    but.pack(fill=X, side=BOTTOM)
-    but.focus()
-    about.grab_set()
+    def show_about(self):
+        """显示关于窗口"""
+        message = QWidgets.QMessageBox(self)
+        message.setWindowTitle('关于')
+        message.setIcon(message.Information)
+        show_text = ("""
+        一个简单的随机座位表生成器
+        程序全部使用Python编写
+        GUI部分使用PyQt5编写
+        该程序在GPLv3协议下分发
+        详情请参见README
+        """)
+        message.setText(show_text)
+        message.show()
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     root = Tk()
     root.title('座位生成器')
     chart = STText(m=6, n=8, master=root)
@@ -208,3 +240,8 @@ if __name__ == '__main__':
     root.wait_window()
     root.mainloop()
 
+=======
+    app = QWidgets.QApplication(sys.argv)
+    win = Window(6, 8)
+    sys.exit(app.exec_())
+>>>>>>> PyQt

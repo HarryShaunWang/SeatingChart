@@ -3,14 +3,14 @@ class SeatingChart:
     """座位表"""
 
     def __init__(self, m, n):
-        """座位一共有m行，n列"""
+        """座位有m行，n列"""
         self.m = m
         self.n = n
         self._pos = [x for x in range(len(self))]
         self.shuffle()
 
     def __str__(self):
-        """返回一张可视化的座位表"""
+        """返回用学号表示的座位表"""
         s = ''
         for i in range(self.m):
             for j in range(self.n):
@@ -19,7 +19,7 @@ class SeatingChart:
         return s
 
     def __len__(self):
-        """返回座位表中的总人数"""
+        """返回座位的总数"""
         return self.m * self.n
 
     def __getitem__(self, i):
@@ -27,13 +27,13 @@ class SeatingChart:
         return self._pos[i * self.n: (i + 1) * self.n]
 
     def shuffle(self):
-        """打乱座位表"""
+        """随机打乱座位表"""
         from random import shuffle
         shuffle(self._pos)
         self.maintain()  # 恢复自定义规则
 
     def maintain(self):
-        """一些自定义规则"""
+        """恢复自定义规则"""
         from random import randrange
         tmp = self[1][randrange(0, self.n)]
         self.swap_num(20, tmp)

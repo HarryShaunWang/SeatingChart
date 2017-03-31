@@ -93,5 +93,6 @@ ENV/
 # Rope project settings
 .ropeproject
 
-name.txt
+# User settings
 .idea
+user_data
