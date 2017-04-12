@@ -4,6 +4,8 @@ import PyQt5.QtWidgets as QWidgets
 import PyQt5.QtCore as QCore
 from SeatingChart import SeatingChart
 
+WINDOW_TITLE = "随机座位生成器"
+
 
 class STText(QWidgets.QWidget):
     """用来显示座位表，继承QWidget"""
@@ -13,11 +15,11 @@ class STText(QWidgets.QWidget):
         super().__init__(parent)
         self.seat = SeatingChart(m, n)
         self.name_list = []  # 名单初始时为空， name_list[x] => 学号为x的同学的名字
-        layout = QWidgets.QGridLayout(self)
+        ly = QWidgets.QGridLayout(self)
         for i in range(self.seat.m):
             for j in range(self.seat.n):
-                layout.addWidget(QWidgets.QLabel(self[i][j]), i, j)
-        self.setLayout(layout)
+                ly.addWidget(QWidgets.QLabel(self[i][j]), i, j)
+        self.setLayout(ly)
 
     def __getitem__(self, i):
         """返回第i行同学的名单"""
@@ -54,38 +56,37 @@ class STText(QWidgets.QWidget):
 
 
 class Window(QWidgets.QMainWindow):
-    def __init__(self, m, n):
+    def __init__(self):
         """窗口中座位表有m行n列"""
         super().__init__()
+        self.setWindowTitle(WINDOW_TITLE)
+        self.seat = None
+
+    def make_user_interface(self, m, n):
+        class NormalAction(QWidgets.QAction):
+            """打包过的QAction类"""
+
+            def __init__(self, text, short_cut, status_tip, trig, parent):
+                QWidgets.QAction.__init__(self, text, parent)
+                if short_cut:
+                    self.setShortcut(short_cut)
+                if status_tip:
+                    self.setStatusTip(status_tip)
+                if trig:
+                    self.triggered.connect(trig)
+
         self.seat = STText(m, n, self)
-        self.setWindowTitle('随机座位生成器')
-        self.setWindowState(QCore.Qt.WindowMaximized)
-        self.make_user_interface()
-        self.show()
 
-    class NormalAction(QWidgets.QAction):
-        """打包过的QAction类"""
-
-        def __init__(self, text, short_cut, status_tip, trig, parent):
-            QWidgets.QAction.__init__(self, text, parent)
-            if short_cut:
-                self.setShortcut(short_cut)
-            if status_tip:
-                self.setStatusTip(status_tip)
-            if trig:
-                self.triggered.connect(trig)
-
-    def make_user_interface(self):
         # 创建状态栏
         self.statusBar()
 
         # 创建动作
-        new_action = self.NormalAction('新建', 'Ctrl+N', "新建一张座位表", self.seat.shuffle, self)
-        save_action = self.NormalAction('保存', 'Ctrl+S', "将座位表保存到文件", self.save, self)
-        load_action = self.NormalAction('载入', 'Ctrl+O', "从文件载入名单", self.load, self)
-        set_action = self.NormalAction('设置', 'Ctrl+S', "设置字体，建议中文26号，数字48号", self.set_font, self)
-        quit_action = self.NormalAction('退出', 'Ctrl+Q', "退出程序", QWidgets.qApp.quit, self)
-        about_action = self.NormalAction('关于', None, "显示关于", self.show_about, self)
+        new_action = NormalAction('新建', 'Ctrl+N', "新建一张座位表", self.seat.shuffle, self)
+        save_action = NormalAction('保存', 'Ctrl+S', "将座位表保存到文件", self.save, self)
+        load_action = NormalAction('载入', 'Ctrl+O', "从文件载入名单", self.load, self)
+        set_action = NormalAction('设置', 'Ctrl+S', "设置字体，建议中文26号，数字48号", self.set_font, self)
+        quit_action = NormalAction('退出', 'Ctrl+Q', "退出程序", QWidgets.qApp.quit, self)
+        about_action = NormalAction('关于', None, "显示关于", self.show_about, self)
 
         # 创建工具栏
         file_tools = QWidgets.QToolBar('File')
@@ -144,7 +145,7 @@ class Window(QWidgets.QMainWindow):
             err_message = QWidgets.QErrorMessage(self)
             error = ""
             for s in err.args:
-                error += s
+                error += s + ' '
             err_message.showMessage("{err}！".format(err=error))
         except PermissionError as err:
             err_message = QWidgets.QErrorMessage(self)
@@ -163,7 +164,7 @@ class Window(QWidgets.QMainWindow):
     def show_about(self):
         """显示关于窗口"""
         message = QWidgets.QMessageBox(self)
-        message.setWindowTitle('关于')
+        message.setWindowTitle('关于' + WINDOW_TITLE)
         message.setIcon(message.Information)
         show_text = ("""
         一个简单的随机座位表生成器
@@ -178,5 +179,37 @@ class Window(QWidgets.QMainWindow):
 
 if __name__ == '__main__':
     app = QWidgets.QApplication(sys.argv)
-    win = Window(6, 8)
+    win = Window()
+
+    query_dialog = QWidgets.QDialog()
+
+    layout = QWidgets.QVBoxLayout()
+    u_lay = QWidgets.QHBoxLayout()
+    d_lay = QWidgets.QHBoxLayout()
+    layout.addWidget(QWidgets.QLabel("请输入座位表的行列数：", query_dialog))
+    layout.addLayout(u_lay)
+    layout.addLayout(d_lay)
+
+    box1 = QWidgets.QSpinBox(query_dialog)
+    box2 = QWidgets.QSpinBox(query_dialog)
+    box1.setValue(6)
+    box2.setValue(8)
+    u_lay.addWidget(QWidgets.QLabel("行：", query_dialog))
+    u_lay.addWidget(box1)
+    u_lay.addWidget(QWidgets.QLabel("列：", query_dialog))
+    u_lay.addWidget(box2)
+
+    ok_button = QWidgets.QPushButton("确定", query_dialog)
+    ok_button.clicked.connect(lambda: win.make_user_interface(box1.value(), box2.value()))
+    ok_button.clicked.connect(win.showMaximized)
+    ok_button.clicked.connect(query_dialog.close)
+    cancel_button = QWidgets.QPushButton("取消", query_dialog)
+    cancel_button.clicked.connect(QWidgets.qApp.quit)
+    d_lay.addWidget(ok_button)
+    d_lay.addWidget(cancel_button)
+
+    query_dialog.setLayout(layout)
+    query_dialog.setWindowTitle(WINDOW_TITLE)
+    query_dialog.show()
+
     sys.exit(app.exec_())
