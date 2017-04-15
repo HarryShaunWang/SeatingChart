@@ -62,28 +62,34 @@ class Window(QWidgets.QMainWindow):
         self.seat = None
 
     def make_user_interface(self, m, n):
-        class NormalAction(QWidgets.QAction):
-            def __init__(self, text, short_cut, status_tip, trig, parent):
-                QWidgets.QAction.__init__(self, text, parent)
-                if short_cut:
-                    self.setShortcut(short_cut)
-                if status_tip:
-                    self.setStatusTip(status_tip)
-                if trig:
-                    self.triggered.connect(trig)
-
         self.seat = STText(m, n, self)
 
         # 创建状态栏
         self.statusBar()
 
         # 创建动作
-        new_action = NormalAction('新建', 'Ctrl+N', "新建一张座位表", self.seat.shuffle, self)
-        save_action = NormalAction('保存', 'Ctrl+S', "将座位表保存到文件", self.save, self)
-        load_action = NormalAction('载入', 'Ctrl+O', "从文件载入名单", self.load, self)
-        set_action = NormalAction('设置', 'Ctrl+S', "设置字体，建议中文26号，数字48号", self.set_font, self)
-        quit_action = NormalAction('退出', 'Ctrl+Q', "退出程序", QWidgets.qApp.quit, self)
-        about_action = NormalAction('关于', None, "显示关于", self.show_about, self)
+        new_action = QWidgets.QAction('新建', self)
+        new_action.setShortcut('Ctrl+N')
+        new_action.setStatusTip("新建一张座位表")
+        new_action.triggered.connect(self.seat.shuffle)
+        save_action = QWidgets.QAction('保存', self)
+        save_action.setShortcut('Ctrl+S')
+        save_action.setStatusTip("将座位表保存到文件")
+        save_action.triggered.connect(self.save)
+        load_action = QWidgets.QAction('载入', self)
+        load_action.setShortcut('Ctrl+O')
+        load_action.setStatusTip("从文件载入名单")
+        load_action.triggered.connect(self.load)
+        set_action = QWidgets.QAction('设置', self)
+        set_action.setStatusTip("设置字体，建议中文26号，数字48号")
+        set_action.triggered.connect(self.set_font)
+        quit_action = QWidgets.QAction('退出', self)
+        quit_action.setShortcut('Ctrl+Q')
+        quit_action.setStatusTip("退出程序")
+        quit_action.triggered.connect(QWidgets.qApp.quit)
+        about_action = QWidgets.QAction('关于', self)
+        about_action.setStatusTip("显示关于")
+        about_action.triggered.connect(self.show_about)
 
         # 创建工具栏
         file_tools = QWidgets.QToolBar('File')
@@ -93,10 +99,10 @@ class Window(QWidgets.QMainWindow):
         file_tools.addAction(load_action)
         file_tools.addAction(set_action)
         file_tools.addSeparator()
+        file_tools.addAction(quit_action)
 
         help_tools = QWidgets.QToolBar('Help')
         help_tools.setMovable(False)
-        file_tools.addAction(quit_action)
         help_tools.addAction(about_action)
 
         self.addToolBar(QCore.Qt.LeftToolBarArea, file_tools)
@@ -193,15 +199,11 @@ if __name__ == '__main__':
     layout.addWidget(box1)
     layout.addWidget(box2)
 
-    d_lay = QWidgets.QHBoxLayout()
-    ok_button = QWidgets.QPushButton("确定", query_dialog)
-    ok_button.clicked.connect(query_dialog.accept)
-    cancel_button = QWidgets.QPushButton("取消", query_dialog)
-    cancel_button.clicked.connect(query_dialog.reject)
-    d_lay.addStretch(1)
-    d_lay.addWidget(ok_button)
-    d_lay.addWidget(cancel_button)
-    layout.addLayout(d_lay)
+    button_box = QWidgets.QDialogButtonBox(QWidgets.QDialogButtonBox.Ok |
+                                           QWidgets.QDialogButtonBox.Cancel, query_dialog)
+    button_box.accepted.connect(query_dialog.accept)
+    button_box.rejected.connect(query_dialog.reject)
+    layout.addWidget(button_box)
 
     query_dialog.accepted.connect(query_dialog.close)
     query_dialog.accepted.connect(lambda: win.make_user_interface(box1.value(), box2.value()))
@@ -209,7 +211,7 @@ if __name__ == '__main__':
 
     query_dialog.rejected.connect(QWidgets.qApp.quit)
 
-    query_dialog.setFixedSize(query_dialog.sizeHint())
+    query_dialog.setFixedHeight(query_dialog.minimumHeight())
     query_dialog.setLayout(layout)
     query_dialog.setWindowTitle("设置")
     query_dialog.show()
