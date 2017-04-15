@@ -9,15 +9,6 @@ class SeatingChart:
         self._pos = [x for x in range(len(self))]
         self.shuffle()
 
-    def __str__(self):
-        """返回用学号表示的座位表"""
-        s = ''
-        for i in range(self.m):
-            for j in range(self.n):
-                s += str(self[i][j]).rjust(4)
-            s += '\n'
-        return s
-
     def __len__(self):
         """返回座位的总数"""
         return self.m * self.n

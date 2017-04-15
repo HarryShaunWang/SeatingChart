@@ -57,15 +57,12 @@ class STText(QWidgets.QWidget):
 
 class Window(QWidgets.QMainWindow):
     def __init__(self):
-        """窗口中座位表有m行n列"""
         super().__init__()
         self.setWindowTitle(WINDOW_TITLE)
         self.seat = None
 
     def make_user_interface(self, m, n):
         class NormalAction(QWidgets.QAction):
-            """打包过的QAction类"""
-
             def __init__(self, text, short_cut, status_tip, trig, parent):
                 QWidgets.QAction.__init__(self, text, parent)
                 if short_cut:
@@ -109,7 +106,7 @@ class Window(QWidgets.QMainWindow):
         self.setCentralWidget(self.seat)
 
     def save(self):
-        """显示一个保存文件的窗口"""
+        """将座位表保存到文件，显示一个窗口"""
         file_dia = QWidgets.QFileDialog(self)
         file_dia.setAcceptMode(file_dia.AcceptSave)
         file = file_dia.getSaveFileName(self, "保存文件", self.windowFilePath(), "文本文件(*.txt);;所有文件(*.*)")
@@ -132,7 +129,7 @@ class Window(QWidgets.QMainWindow):
             err_message.showMessage("{err}\n这不是一个有效的文件！".format(err=err.strerror))
 
     def load(self):
-        """显示一个载入文件的系统"""
+        """从文件读取座位表的名单，显示一个窗口"""
         file_dia = QWidgets.QFileDialog(self)
         file_dia.setAcceptMode(file_dia.AcceptOpen)
         file = file_dia.getOpenFileName(self, "读取名单", self.windowFilePath(), "文本文件(*.txt);;所有文件(*.*)")
@@ -164,9 +161,9 @@ class Window(QWidgets.QMainWindow):
     def show_about(self):
         """显示关于窗口"""
         message = QWidgets.QMessageBox(self)
-        message.setWindowTitle('关于' + WINDOW_TITLE)
+        message.setWindowTitle('关于 ' + WINDOW_TITLE)
         message.setIcon(message.Information)
-        show_text = ("""
+        show_text = ("""\
         一个简单的随机座位表生成器
         程序全部使用Python编写
         GUI部分使用PyQt5编写
@@ -184,32 +181,37 @@ if __name__ == '__main__':
     query_dialog = QWidgets.QDialog()
 
     layout = QWidgets.QVBoxLayout()
-    u_lay = QWidgets.QHBoxLayout()
-    d_lay = QWidgets.QHBoxLayout()
     layout.addWidget(QWidgets.QLabel("请输入座位表的行列数：", query_dialog))
-    layout.addLayout(u_lay)
-    layout.addLayout(d_lay)
+    layout.setSizeConstraint(layout.SetMinimumSize)
 
     box1 = QWidgets.QSpinBox(query_dialog)
     box2 = QWidgets.QSpinBox(query_dialog)
     box1.setValue(6)
+    box1.setSuffix("行")
     box2.setValue(8)
-    u_lay.addWidget(QWidgets.QLabel("行：", query_dialog))
-    u_lay.addWidget(box1)
-    u_lay.addWidget(QWidgets.QLabel("列：", query_dialog))
-    u_lay.addWidget(box2)
+    box2.setSuffix("列")
+    layout.addWidget(box1)
+    layout.addWidget(box2)
 
+    d_lay = QWidgets.QHBoxLayout()
     ok_button = QWidgets.QPushButton("确定", query_dialog)
-    ok_button.clicked.connect(lambda: win.make_user_interface(box1.value(), box2.value()))
-    ok_button.clicked.connect(win.showMaximized)
-    ok_button.clicked.connect(query_dialog.close)
+    ok_button.clicked.connect(query_dialog.accept)
     cancel_button = QWidgets.QPushButton("取消", query_dialog)
-    cancel_button.clicked.connect(QWidgets.qApp.quit)
+    cancel_button.clicked.connect(query_dialog.reject)
+    d_lay.addStretch(1)
     d_lay.addWidget(ok_button)
     d_lay.addWidget(cancel_button)
+    layout.addLayout(d_lay)
 
+    query_dialog.accepted.connect(query_dialog.close)
+    query_dialog.accepted.connect(lambda: win.make_user_interface(box1.value(), box2.value()))
+    query_dialog.accepted.connect(win.showMaximized)
+
+    query_dialog.rejected.connect(QWidgets.qApp.quit)
+
+    query_dialog.setFixedSize(query_dialog.sizeHint())
     query_dialog.setLayout(layout)
-    query_dialog.setWindowTitle(WINDOW_TITLE)
+    query_dialog.setWindowTitle("设置")
     query_dialog.show()
 
     sys.exit(app.exec_())
