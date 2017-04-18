@@ -5,6 +5,8 @@ import PyQt5.QtCore as QCore
 from SeatingChart import SeatingChart
 
 WINDOW_TITLE = "随机座位生成器"
+DEFAULT_M = 6
+DEFAULT_N = 8
 
 
 class STText(QWidgets.QWidget):
@@ -180,40 +182,44 @@ class Window(QWidgets.QMainWindow):
         message.show()
 
 
+class QueryDialog(QWidgets.QDialog):
+    def __init__(self):
+        super().__init__()
+
+        layout = QWidgets.QVBoxLayout()
+        layout.addWidget(QWidgets.QLabel("请输入座位表的行列数：", self))
+
+        self.box1 = QWidgets.QSpinBox(self)
+        self.box2 = QWidgets.QSpinBox(self)
+
+        self.box1.setValue(DEFAULT_M)
+        self.box2.setValue(DEFAULT_N)
+        self.box1.setSuffix("行")
+        self.box2.setSuffix("列")
+        layout.addWidget(self.box1)
+        layout.addWidget(self.box2)
+
+        button_box = QWidgets.QDialogButtonBox(QWidgets.QDialogButtonBox.Ok |
+                                               QWidgets.QDialogButtonBox.Cancel, self)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        layout.addWidget(button_box)
+
+        self.setLayout(layout)
+        layout.setSizeConstraint(layout.SetMinimumSize)
+        self.setFixedHeight(self.minimumHeight())
+        self.setWindowTitle("设置")
+        self.show()
+
+    def result(self):
+        return self.box1.value(), self.box2.value()
+
+
 if __name__ == '__main__':
     app = QWidgets.QApplication(sys.argv)
+    query_dialog = QueryDialog()
     win = Window()
-
-    query_dialog = QWidgets.QDialog()
-
-    layout = QWidgets.QVBoxLayout()
-    layout.addWidget(QWidgets.QLabel("请输入座位表的行列数：", query_dialog))
-    layout.setSizeConstraint(layout.SetMinimumSize)
-
-    box1 = QWidgets.QSpinBox(query_dialog)
-    box2 = QWidgets.QSpinBox(query_dialog)
-    box1.setValue(6)
-    box1.setSuffix("行")
-    box2.setValue(8)
-    box2.setSuffix("列")
-    layout.addWidget(box1)
-    layout.addWidget(box2)
-
-    button_box = QWidgets.QDialogButtonBox(QWidgets.QDialogButtonBox.Ok |
-                                           QWidgets.QDialogButtonBox.Cancel, query_dialog)
-    button_box.accepted.connect(query_dialog.accept)
-    button_box.rejected.connect(query_dialog.reject)
-    layout.addWidget(button_box)
-
-    query_dialog.accepted.connect(query_dialog.close)
-    query_dialog.accepted.connect(lambda: win.make_user_interface(box1.value(), box2.value()))
+    query_dialog.accepted.connect(lambda: win.make_user_interface(*query_dialog.result()))
     query_dialog.accepted.connect(win.showMaximized)
-
     query_dialog.rejected.connect(QWidgets.qApp.quit)
-
-    query_dialog.setFixedHeight(query_dialog.minimumHeight())
-    query_dialog.setLayout(layout)
-    query_dialog.setWindowTitle("设置")
-    query_dialog.show()
-
     sys.exit(app.exec_())
