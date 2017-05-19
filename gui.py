@@ -86,12 +86,10 @@ class Window(QMainWindow):
         quit_action.triggered.connect(qApp.quit)
         about_action = QAction('关于', self)
         about_action.setStatusTip("显示关于")
-        about_action.triggered.connect(
-            lambda: QMessageBox().about(self, '关于 ' + self.WINDOW_TITLE, self.ABOUT))
+        about_action.triggered.connect(lambda: QMessageBox().about(self, '关于 ' + self.WINDOW_TITLE, self.ABOUT))
 
         # 创建工具栏
         file_tools = QToolBar('File')
-        file_tools.setMovable(False)
         file_tools.addAction(new_action)
         file_tools.addAction(save_action)
         file_tools.addAction(load_action)
@@ -100,11 +98,10 @@ class Window(QMainWindow):
         file_tools.addAction(quit_action)
 
         help_tools = QToolBar('Help')
-        help_tools.setMovable(False)
         help_tools.addAction(about_action)
 
-        self.addToolBar(Qt.RightToolBarArea, file_tools)
-        self.addToolBar(Qt.RightToolBarArea, help_tools)
+        self.addToolBar(file_tools)
+        self.addToolBar(help_tools)
 
     def save(self):
         """将座位表保存到文件，显示一个窗口"""
