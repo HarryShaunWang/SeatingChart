@@ -44,11 +44,11 @@ class _SeatingWidget(QWidget):
 class Window(QMainWindow):
     WINDOW_TITLE = "随机座位生成器"
     ABOUT = """\
-                    一个简单的随机座位表生成器
-                    程序使用Python编写
-                    GUI部分使用PyQt5编写
-                    该程序在GPLv3协议下分发
-                    详情请参见README"""
+一个简单的随机座位表生成器
+程序使用Python编写
+GUI部分使用PyQt5编写
+该程序在GPLv3协议下分发
+详情请参见README"""
 
     def __init__(self):
         super().__init__()
