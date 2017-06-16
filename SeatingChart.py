@@ -1,3 +1,15 @@
+def maintain(seats: list, m: int, n: int):
+    """自定义规则"""
+    from random import randrange
+    i, j, tmp = seats.index(20), seats.index(26), 8 + randrange(0, n)
+    seats[i], seats[tmp] = seats[tmp], seats[i]
+    i = tmp
+    seats[j], seats[i ^ 1] = seats[i ^ 1], seats[j]
+
+    i, j = seats.index(0), seats.index(7)
+    seats[i], seats[j ^ 1] = seats[j ^ 1], seats[i]
+
+
 class SeatingChart:
     """m行n列的座位表"""
 
@@ -36,24 +48,7 @@ class SeatingChart:
         """随机打乱座位表"""
         from random import shuffle
         shuffle(self._pos)
-        self.maintain()  # 恢复自定义规则
-
-    def maintain(self):
-        """自定义规则"""
-        from random import randrange
-        tmp = self._pos[8:16][randrange(0, self.n)]
-        self.swap_num(20, tmp)
-        self.swap_num(26, self.desk_mate(20))
-        self.swap_num(0, self.desk_mate(7))
-
-    def desk_mate(self, x: int) -> int:
-        """返回学号为x的同桌的学号"""
-        return self._pos[self._pos.index(x) ^ 1]
-
-    def swap_num(self, x: int, y: int):
-        """交换学号为x， y的两名同学的位置"""
-        i, j = self._pos.index(x), self._pos.index(y)
-        self._pos[i], self._pos[j] = self._pos[j], self._pos[i]
+        maintain(self._pos, self.m, self.n)  # 恢复自定义规则
 
     def set_names(self, names: list):
         """"设置班级名单"""

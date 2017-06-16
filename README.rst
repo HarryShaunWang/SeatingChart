@@ -1,7 +1,6 @@
 =============
 SeatingChart
 =============
-:版本: 2.2
 :许可协议: GPLv3
 
 程序简介
@@ -51,4 +50,4 @@ SeatingChart
 
 具体设置
 ---------
-    如需自定义座位规则可自行定制 SeatingChart 中的 maintain() 函数。
+    如需自定义座位规则可自行定制 SeatingChart.py 中的 maintain() 函数。
