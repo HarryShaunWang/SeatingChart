@@ -1,4 +1,6 @@
 class SeatingChart:
+    """m行n列的座位表"""
+
     def __init__(self, m, n):
         self.m = m  # 行数
         self.n = n  # 列数
@@ -7,15 +9,16 @@ class SeatingChart:
         self.shuffle()
 
     def __len__(self):
+        """返回班上的总座位数"""
         return self.m * self.n
 
-    def __getitem__(self, i):
-        """获取第i行的同学的列表"""
+    def __getitem__(self, i) -> list:
+        """获取第i行的同学"""
         items = self._pos[i * self.n: (i + 1) * self.n]
         return [self.get_name(x) for x in items]
 
     def __str__(self):
-        """返回可视化的座位表"""
+        """返回可打印的座位表"""
         s = ''
         for i in range(self.m):
             for j in range(self.n):
@@ -25,7 +28,8 @@ class SeatingChart:
             s += '\n'
         return s
 
-    def get_name(self, i):
+    def get_name(self, i: int) -> str:
+        """获得第i个同学的名字，没有名单则返回学号"""
         return self.names[i] if self.names else str(i)
 
     def shuffle(self):
@@ -42,16 +46,16 @@ class SeatingChart:
         self.swap_num(26, self.desk_mate(20))
         self.swap_num(0, self.desk_mate(7))
 
-    def desk_mate(self, x):
+    def desk_mate(self, x: int) -> int:
         """返回学号为x的同桌的学号"""
         return self._pos[self._pos.index(x) ^ 1]
 
-    def swap_num(self, x, y):
+    def swap_num(self, x: int, y: int):
         """交换学号为x， y的两名同学的位置"""
         i, j = self._pos.index(x), self._pos.index(y)
         self._pos[i], self._pos[j] = self._pos[j], self._pos[i]
 
-    def set_name(self, names):
+    def set_names(self, names: list):
         """"设置班级名单"""
         names.insert(0, '空桌子')
         if len(names) >= len(self):
@@ -59,13 +63,27 @@ class SeatingChart:
         else:
             raise ValueError("名单长度不足{num}".format(num=len(self)))
 
-    def load(self, file_name):
+    def load(self, file_name: str):
         """从文件读取名单"""
-        with open(file_name) as file:
+        file = open(file_name, 'rt')
+        try:
             names = file.read().split()
-            self.set_name(names)
+            self.set_names(names)
+        except IOError:
+            print('IOError')
+        except PermissionError:
+            print('PermissionError')
+        finally:
+            file.close()
 
-    def save(self, file_name):
+    def save(self, file_name: str):
         """将座位表保存到文件"""
-        with open(file_name, 'w') as file:
+        file = open(file_name, 'wt')
+        try:
             file.write(str(self))
+        except IOError:
+            print('IOError')
+        except PermissionError:
+            print('PermissionError')
+        finally:
+            file.close()
