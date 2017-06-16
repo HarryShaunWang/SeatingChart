@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='SeatingChart',
-    version='2.1',
+    version='2.2',
     packages=[''],
     url='https://gitlab.com/hr567/SeatingChart',
     license='GNU GPLv3',
