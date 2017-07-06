@@ -1,5 +1,5 @@
 import sys
-from main import (DEFAULT_M, DEFAULT_N, DEFAULT_LOAD_FILE)
+from main import opts
 from SeatingChart import SeatingChart
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -56,9 +56,8 @@ class Window(QMainWindow):
         super().__init__()
         self.seat_stack = [range(10, 1, -1)]
         self.setWindowTitle(WINDOW_TITLE)
-        self.setWindowFilePath(DEFAULT_LOAD_FILE)
+        self.setWindowFilePath(opts['DEFAULT_LOAD_FILE'])
         self.seat_table = None
-        # self.seat_table = _SeatingWidget(None, None, None)
 
     def init_ui(self, m, n):
         # 创建座位表
@@ -97,7 +96,7 @@ class Window(QMainWindow):
         # 创建菜单栏
         menus = self.menuBar()
 
-        file_menu = menus.addMenu('File')
+        file_menu = menus.addMenu('文件')
         file_menu.addAction(new_action)
         file_menu.addAction(save_action)
         file_menu.addAction(load_action)
@@ -105,7 +104,7 @@ class Window(QMainWindow):
         file_menu.addSeparator()
         file_menu.addAction(quit_action)
 
-        help_menu = menus.addMenu('Help')
+        help_menu = menus.addMenu('帮助')
         help_menu.addAction(about_action)
         help_menu.addAction(about_qt_action)
 
@@ -174,8 +173,8 @@ class InitDialog(QDialog):
         self.box1 = QSpinBox(self)
         self.box2 = QSpinBox(self)
 
-        self.box1.setValue(DEFAULT_M)
-        self.box2.setValue(DEFAULT_N)
+        self.box1.setValue(opts['DEFAULT_M'])
+        self.box2.setValue(opts['DEFAULT_N'])
         self.box1.setSuffix("行")
         self.box2.setSuffix("列")
         layout.addWidget(self.box1)
@@ -193,11 +192,10 @@ class InitDialog(QDialog):
         self.show()
 
 
-def main():
-    app = QApplication(sys.argv)
-    init_dialog = InitDialog()
-    win = Window()
-    init_dialog.accepted.connect(lambda: win.init_ui(init_dialog.box1.value(), init_dialog.box2.value()))
-    init_dialog.accepted.connect(win.showMaximized)
-    init_dialog.rejected.connect(qApp.quit)
-    sys.exit(app.exec_())
+app = QApplication(sys.argv)
+init_dialog = InitDialog()
+win = Window()
+init_dialog.accepted.connect(lambda: win.init_ui(init_dialog.box1.value(), init_dialog.box2.value()))
+init_dialog.accepted.connect(win.showMaximized)
+init_dialog.rejected.connect(qApp.quit)
+sys.exit(app.exec_())
