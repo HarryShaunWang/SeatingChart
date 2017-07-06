@@ -46,7 +46,7 @@ SeatingChart
 
     -o file  指定输出文件（默认值为 seat.txt）
 
-    -c  不显示GUI界面
+    -g  显示GUI界面
 
 具体设置
 ---------
