@@ -1,21 +1,20 @@
 import sys
 from main import opts
 from SeatingChart import SeatingChart
+from PyQt5.Qt import Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 
 WINDOW_TITLE = '随机座位生成器'
 ABOUT = """\
 一个简单的随机座位表生成器
-程序使用Python编写
+使用Python编写
 GUI部分使用PyQt5编写
 该程序在GPLv3协议下分发
 详情请参见README"""
 
 
 class _SeatingWidget(QTableWidget):
-    DEFAULT_FONT = QFont()
-
     def __init__(self, m, n, parent):
         super().__init__(m, n, parent)
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
@@ -26,7 +25,9 @@ class _SeatingWidget(QTableWidget):
         self.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         for i in range(self.seat.m):
             for j in range(self.seat.n):
-                self.setItem(i, j, QTableWidgetItem())
+                table_widget_item = QTableWidgetItem()
+                table_widget_item.setFlags(Qt.ItemIsEnabled)
+                self.setItem(i, j, table_widget_item)
         self.gen_text()
 
     def shuffle(self):
@@ -43,7 +44,7 @@ class _SeatingWidget(QTableWidget):
     def gen_text(self):
         for i in range(self.seat.m):
             for j in range(self.seat.n):
-                self.item(i, j).setText(self.seat[i][j])
+                self.item(i, j).setText(self.seat.get_name(i, j))
 
     def set_font(self, font: QFont):
         for i in range(self.seat.m):
