@@ -43,6 +43,8 @@ def get_opts():
     return res
 
 
+# TODO:单元测试
+
 opts = get_opts()
 if __name__ == '__main__':
     if opts['USE_GUI']:

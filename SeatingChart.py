@@ -1,4 +1,5 @@
 class SeatingChart:
+    # TODO:保存多张座位表
     def __init__(self, m, n):
         self.m = m  # 行数
         self.n = n  # 列数
@@ -20,8 +21,6 @@ class SeatingChart:
         for i in range(self.m):
             for j in range(self.n):
                 s += self[i][j].rjust(4)
-                if j % 2 == 1 and j + 1 != self.n:
-                    s += '||'
             s += '\n'
         return s
 
@@ -74,6 +73,9 @@ class SeatingChart:
 
     def maintain(self):
         """自定义规则"""
+
+        # TODO:将规则独立到文件，支持同桌，疏远，指定位置，空座位等
+        # TODO:需要一个GUI规则编辑器
 
         def _mk_deskmate(student_a: int, student_b: int):
             """把 a 的同桌变成 b"""

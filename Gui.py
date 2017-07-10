@@ -15,6 +15,8 @@ GUI部分使用PyQt5编写
 
 
 class _SeatingWidget(QTableWidget):
+    # TODO:座位表拖放编辑功能
+    # TODO:添加走廊显示
     def __init__(self, m, n, parent):
         super().__init__(m, n, parent)
         self.setSizeAdjustPolicy(QAbstractScrollArea.AdjustToContents)
@@ -53,6 +55,7 @@ class _SeatingWidget(QTableWidget):
 
 
 class Window(QMainWindow):
+    # TODO:座位表之间的回滚
     def __init__(self):
         super().__init__()
         self.seat_stack = [range(10, 1, -1)]
@@ -158,6 +161,7 @@ class Window(QMainWindow):
 
     def set_font(self):
         """设置显示座位表的字体"""
+        # TODO:滚动调节字体
         font_dia = QFontDialog(self)
         font, ok = font_dia.getFont(self)
         if ok:
