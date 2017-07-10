@@ -1,3 +1,6 @@
+import random
+
+
 class SeatingChart:
     # TODO:保存多张座位表
     def __init__(self, m, n):
@@ -20,7 +23,7 @@ class SeatingChart:
         s = ''
         for i in range(self.m):
             for j in range(self.n):
-                s += self[i][j].rjust(4)
+                s += str(self[i][j]).rjust(4)
             s += '\n'
         return s
 
@@ -36,8 +39,7 @@ class SeatingChart:
 
     def shuffle(self):
         """随机打乱座位表"""
-        from random import shuffle
-        shuffle(self._pos)
+        random.shuffle(self._pos)
         self.maintain()  # 恢复自定义规则
 
     def load(self, file_name: str):
@@ -72,20 +74,62 @@ class SeatingChart:
             file.close()
 
     def maintain(self):
-        """自定义规则"""
+        """\
+        自定义规则
+        A a b ：a, b为同桌
+        B a b ：a, b不在一起
+        C a i j:a在第i行第j列，i、j支持通配符
+        """
+        _MAX_RETRY_TIMES = 1000
 
         # TODO:将规则独立到文件，支持同桌，疏远，指定位置，空座位等
         # TODO:需要一个GUI规则编辑器
 
-        def _mk_deskmate(student_a: int, student_b: int):
-            """把 a 的同桌变成 b"""
-            pos_a, pos_b = self._pos.index(student_a), self._pos.index(student_b)
-            self._pos[pos_a ^ 1], self._pos[pos_b] = self._pos[pos_b], self._pos[pos_a ^ 1]
-
-        from random import randrange
-        tmp = self[1][randrange(0, self.n)]
-        _mk_deskmate(tmp, 20)
-        _mk_deskmate(20, 26)
-        del tmp
-
-        _mk_deskmate(7, 0)
+        try:
+            rules = open("rules.txt", 'r')
+        except FileNotFoundError:
+            print(FileNotFoundError.args)
+        else:
+            fix = [False] * len(self)
+            for rule in rules:
+                if rule == '\n' or rule[0] in ('#',):
+                    continue
+                rule = rule.split()
+                print(rule)
+                if rule[0] == 'A':
+                    a, b = int(rule[1]), int(rule[2])
+                    i, j = self._pos.index(a), self._pos.index(b)
+                    if not (fix[i ^ 1] or fix[j]):
+                        self._pos[i ^ 1], self._pos[j] = self._pos[j], self._pos[i ^ 1]
+                        fix[i] = fix[i ^ 1] = True
+                    else:
+                        raise RuntimeError("Please check rule file, {} or {} has another rule.".format(i, j))
+                elif rule[0] == 'B':
+                    a, b = int(rule[1]), int(rule[2])
+                    i, j = self._pos.index(a), self._pos.index(b)
+                    near_by = (i ^ 1, i - self.n, i + self.n)
+                    if j in near_by:
+                        for cnt in range(_MAX_RETRY_TIMES):
+                            k = random.randrange(0, len(self))
+                            if k not in near_by and not fix[k]:
+                                self._pos[j], self._pos[k] = self._pos[k], self._pos[j]
+                                fix[i] = fix[k] = True
+                                break
+                        else:
+                            raise RuntimeError("Sorry, I can't do it.")
+                elif rule[0] == 'C':
+                    a = int(rule[1])
+                    for cnt in range(_MAX_RETRY_TIMES):
+                        i, j = rule[2], rule[3]
+                        if i == '*':
+                            i = random.randrange(0, self.m)
+                        if j == '*':
+                            j = random.randrange(0, self.n)
+                        i, j = int(i), int(j)
+                        pos_ori, pos_new = self._pos.index(a), i * self.n + j
+                        if not fix[pos_new]:
+                            self._pos[pos_ori], self._pos[pos_new] = self._pos[pos_new], self._pos[pos_ori]
+                            fix[pos_ori] = fix[pos_new] = True
+                            break
+                    else:
+                        raise RuntimeError("Sorry, I can't do it.")
