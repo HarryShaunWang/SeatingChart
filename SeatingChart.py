@@ -78,58 +78,58 @@ class SeatingChart:
         自定义规则
         A a b ：a, b为同桌
         B a b ：a, b不在一起
-        C a i j:a在第i行第j列，i、j支持通配符
+        C a i j ：a在第i行第j列，i、j支持通配符
         """
+        # TODO:增加支持空座位等
+
         _MAX_RETRY_TIMES = 1000
 
-        # TODO:将规则独立到文件，支持同桌，疏远，指定位置，空座位等
-        # TODO:需要一个GUI规则编辑器
+        with open("rules.conf", 'r') as rules:
+            class RulesError(RuntimeError):
+                pass
 
-        try:
-            rules = open("rules.txt", 'r')
-        except FileNotFoundError:
-            print(FileNotFoundError.args)
-        else:
-            fix = [False] * len(self)
-            for rule in rules:
-                if rule == '\n' or rule[0] in ('#',):
-                    continue
-                rule = rule.split()
-                print(rule)
-                if rule[0] == 'A':
-                    a, b = int(rule[1]), int(rule[2])
-                    i, j = self._pos.index(a), self._pos.index(b)
-                    if not (fix[i ^ 1] or fix[j]):
-                        self._pos[i ^ 1], self._pos[j] = self._pos[j], self._pos[i ^ 1]
-                        fix[i] = fix[i ^ 1] = True
-                    else:
-                        raise RuntimeError("Please check rule file, {} or {} has another rule.".format(i, j))
-                elif rule[0] == 'B':
-                    a, b = int(rule[1]), int(rule[2])
-                    i, j = self._pos.index(a), self._pos.index(b)
-                    near_by = (i ^ 1, i - self.n, i + self.n)
-                    if j in near_by:
+            try:
+                fix = [False] * len(self)
+                for rule in rules:  # 处理规则文件
+                    if rule == '\n' or rule[0] in ('#',):
+                        continue
+                    rule = rule.split()
+                    if rule[0] == 'A':
+                        a, b = int(rule[1]), int(rule[2])
+                        i, j = self._pos.index(a), self._pos.index(b)
+                        if not (fix[i ^ 1] or fix[j]):
+                            self._pos[i ^ 1], self._pos[j] = self._pos[j], self._pos[i ^ 1]
+                            fix[i] = fix[i ^ 1] = True
+                        else:
+                            raise RulesError
+                    elif rule[0] == 'B':
+                        a, b = int(rule[1]), int(rule[2])
+                        i, j = self._pos.index(a), self._pos.index(b)
+                        near_by = (i ^ 1, i - self.n, i + self.n)
+                        if j in near_by:
+                            for cnt in range(_MAX_RETRY_TIMES):
+                                k = random.randrange(0, len(self))
+                                if k not in near_by and not fix[k]:
+                                    self._pos[j], self._pos[k] = self._pos[k], self._pos[j]
+                                    fix[i] = fix[k] = True
+                                    break
+                            else:
+                                raise RulesError
+                    elif rule[0] == 'C':
+                        a = int(rule[1])
                         for cnt in range(_MAX_RETRY_TIMES):
-                            k = random.randrange(0, len(self))
-                            if k not in near_by and not fix[k]:
-                                self._pos[j], self._pos[k] = self._pos[k], self._pos[j]
-                                fix[i] = fix[k] = True
+                            i, j = rule[2], rule[3]
+                            if i == '*':
+                                i = random.randrange(0, self.m)
+                            if j == '*':
+                                j = random.randrange(0, self.n)
+                            i, j = int(i), int(j)
+                            pos_ori, pos_new = self._pos.index(a), i * self.n + j
+                            if not fix[pos_new]:
+                                self._pos[pos_ori], self._pos[pos_new] = self._pos[pos_new], self._pos[pos_ori]
+                                fix[pos_ori] = fix[pos_new] = True
                                 break
                         else:
-                            raise RuntimeError("Sorry, I can't do it.")
-                elif rule[0] == 'C':
-                    a = int(rule[1])
-                    for cnt in range(_MAX_RETRY_TIMES):
-                        i, j = rule[2], rule[3]
-                        if i == '*':
-                            i = random.randrange(0, self.m)
-                        if j == '*':
-                            j = random.randrange(0, self.n)
-                        i, j = int(i), int(j)
-                        pos_ori, pos_new = self._pos.index(a), i * self.n + j
-                        if not fix[pos_new]:
-                            self._pos[pos_ori], self._pos[pos_new] = self._pos[pos_new], self._pos[pos_ori]
-                            fix[pos_ori] = fix[pos_new] = True
-                            break
-                    else:
-                        raise RuntimeError("Sorry, I can't do it.")
+                            raise RulesError
+            except RulesError:
+                print("请检查rules.conf文件")

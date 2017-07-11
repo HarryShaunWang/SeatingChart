@@ -14,6 +14,11 @@ GUI部分使用PyQt5编写
 详情请参见README"""
 
 
+# TODO:需要一个GUI规则编辑器
+class RuleEditor:
+    pass
+
+
 class _SeatingWidget(QTableWidget):
     # TODO:座位表拖放编辑功能
     # TODO:添加走廊显示
