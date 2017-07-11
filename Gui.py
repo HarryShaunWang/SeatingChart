@@ -1,6 +1,7 @@
 import sys
 from main import opts
 from SeatingChart import SeatingChart
+from RuleEditor import RuleEditor
 from PyQt5.Qt import Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
@@ -12,11 +13,6 @@ ABOUT = """\
 GUI部分使用PyQt5编写
 该程序在GPLv3协议下分发
 详情请参见README"""
-
-
-# TODO:需要一个GUI规则编辑器
-class RuleEditor:
-    pass
 
 
 class _SeatingWidget(QTableWidget):
