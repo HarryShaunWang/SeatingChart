@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 from SeatingChart import SeatingChart
 
 USAGE = """\
@@ -11,8 +12,7 @@ Default Usage: ./main.py -m 6 -n 8 -o seat.txt -i name.txt
     -g          使用图形化界面"""
 
 
-def get_opts():
-    import sys
+def get_opt():
     argv = sys.argv
     res = {
         'USE_GUI': False,
@@ -45,7 +45,7 @@ def get_opts():
 
 # TODO:单元测试
 
-opts = get_opts()
+opts = get_opt()
 if __name__ == '__main__':
     if opts['USE_GUI']:
         import Gui

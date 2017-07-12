@@ -48,11 +48,11 @@ SeatingChart
 
 具体设置
 ---------
-自定义座位规则的配置文件为 rules.conf 文件。
-支持规则如下：
+    自定义座位规则的配置文件为 rules.conf 文件。
+    支持规则如下：
 
-A a b ：a, b为同桌
+    A a b ：a, b为同桌
 
-B a b ：a, b不在一起
+    B a b ：a, b不在一起
 
-C a i j ：a在第i行第j列，i、j支持通配符
+    C a i j ：a在第i行第j列，i、j支持通配符
