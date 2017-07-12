@@ -41,13 +41,12 @@ class SeatingChart:
 
     def maintain(self):
         """随机打乱座位表"""
-
-        def deal_rules_file(rules=None):
+        random.shuffle(self._pos)
+        with open(RULES_FILE) as rules:
             class RulesFileError(Exception):
                 pass
 
             _MAX_RETRY_TIMES = 1000
-            random.shuffle(self._pos)
             try:
                 if not rules:
                     raise RulesFileError
@@ -97,42 +96,17 @@ class SeatingChart:
                 print("无法实现自定义规则，将使用随机座位。")
                 print(self)
 
-        try:
-            rules_file = open(RULES_FILE)
-        except (FileNotFoundError, IOError, PermissionError):
-            deal_rules_file()
-        else:
-            deal_rules_file(rules_file)
-        finally:
-            rules_file.close()
-
     def load(self, file_name: str):
         """从文件读取名单"""
-        try:
-            file = open(file_name, 'r')
+        with open(file_name) as file:
             names = file.read().split()
             names.insert(0, '空桌子')
             if len(names) >= len(self):
                 self.names = names[:len(self)]
             else:
-                raise ValueError
-        except IOError:
-            print('IOError')
-        except PermissionError:
-            print('PermissionError')
-        except ValueError:
-            print("名单长度不足", len(self))
-        finally:
-            file.close()
+                print("名单长度不足", len(self))
 
     def save(self, file_name: str):
         """将座位表保存到文件"""
-        file = open(file_name, 'wt')
-        try:
+        with open(file_name, 'wt') as file:
             file.write(str(self))
-        except IOError:
-            print('IOError')
-        except PermissionError:
-            print('PermissionError')
-        finally:
-            file.close()
