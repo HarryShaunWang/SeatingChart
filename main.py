@@ -49,6 +49,8 @@ opts = get_opts()
 if __name__ == '__main__':
     if opts['USE_GUI']:
         import Gui
+
+        Gui.main()
     else:
         seat = SeatingChart(opts['DEFAULT_M'], opts['DEFAULT_N'])
         seat.save(opts['DEFAULT_SAVE_FILE'])

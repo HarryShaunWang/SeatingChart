@@ -34,7 +34,7 @@ class _SeatingWidget(QTableWidget):
         self.gen_text()
 
     def shuffle(self):
-        self.seat.shuffle()
+        self.seat.maintain()
         self.gen_text()
 
     def load(self, file_name):
@@ -198,10 +198,11 @@ class InitDialog(QDialog):
         self.show()
 
 
-app = QApplication(sys.argv)
-init_dialog = InitDialog()
-win = Window()
-init_dialog.accepted.connect(lambda: win.init_ui(init_dialog.box1.value(), init_dialog.box2.value()))
-init_dialog.accepted.connect(win.showMaximized)
-init_dialog.rejected.connect(qApp.quit)
-sys.exit(app.exec_())
+def main():
+    app = QApplication(sys.argv)
+    init_dialog = InitDialog()
+    win = Window()
+    init_dialog.accepted.connect(lambda: win.init_ui(init_dialog.box1.value(), init_dialog.box2.value()))
+    init_dialog.accepted.connect(win.showMaximized)
+    init_dialog.rejected.connect(qApp.quit)
+    sys.exit(app.exec_())
