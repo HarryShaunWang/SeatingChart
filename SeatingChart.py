@@ -10,7 +10,10 @@ class SeatingChart:
         self.n = n  # 列数
         self._pos = list(range(len(self)))
         self.names = None  # 名单，初始时为空， name_list[x] => 学号为x的同学的名字
-        self.maintain()
+        try:
+            self.maintain()
+        except FutureWarning:
+            print("无法实现自定义规则，将使用随机座位。")
 
     def __len__(self):
         """返回班上的人数"""
@@ -43,58 +46,51 @@ class SeatingChart:
         """随机打乱座位表"""
         random.shuffle(self._pos)
         with open(RULES_FILE) as rules:
-            class RulesFileError(Exception):
-                pass
-
             _MAX_RETRY_TIMES = 1000
-            try:
-                if not rules:
-                    raise RulesFileError
-                fix = [False] * len(self)
-                for rule in rules:  # 处理规则文件
-                    if rule == '\n' or rule[0] in '#':
-                        continue
-                    rule = rule.split()
-                    if rule[0] == 'A':
-                        a, b = int(rule[1]), int(rule[2])
-                        i, j = self._pos.index(a), self._pos.index(b)
-                        if not (fix[i ^ 1] or fix[j]):
-                            self._pos[i ^ 1], self._pos[j] = self._pos[j], self._pos[i ^ 1]
-                            fix[i] = fix[i ^ 1] = True
-                        else:
-                            raise RulesFileError
-                    elif rule[0] == 'B':
-                        a, b = int(rule[1]), int(rule[2])
-                        i, j = self._pos.index(a), self._pos.index(b)
-                        near_by = (i ^ 1, i - self.n, i + self.n)
-                        if j in near_by:
-                            for cnt in range(_MAX_RETRY_TIMES):
-                                k = random.randrange(0, len(self))
-                                if k not in near_by and not fix[k]:
-                                    self._pos[j], self._pos[k] = self._pos[k], self._pos[j]
-                                    fix[i] = fix[k] = True
-                                    break
-                            else:
-                                raise RulesFileError
-                    elif rule[0] == 'C':
-                        a = int(rule[1])
+            if not rules:
+                raise FutureWarning
+            fix = [False] * len(self)
+            for rule in rules:  # 处理规则文件
+                if rule == '\n' or rule[0] in '#':
+                    continue
+                rule = rule.split()
+                if rule[0] == 'A':
+                    a, b = int(rule[1]), int(rule[2])
+                    i, j = self._pos.index(a), self._pos.index(b)
+                    if not (fix[i ^ 1] or fix[j]):
+                        self._pos[i ^ 1], self._pos[j] = self._pos[j], self._pos[i ^ 1]
+                        fix[i] = fix[i ^ 1] = True
+                    else:
+                        raise FutureWarning
+                elif rule[0] == 'B':
+                    a, b = int(rule[1]), int(rule[2])
+                    i, j = self._pos.index(a), self._pos.index(b)
+                    near_by = (i ^ 1, i - self.n, i + self.n)
+                    if j in near_by:
                         for cnt in range(_MAX_RETRY_TIMES):
-                            i, j = rule[2], rule[3]
-                            if i == '*':
-                                i = random.randrange(0, self.m)
-                            if j == '*':
-                                j = random.randrange(0, self.n)
-                            i, j = int(i), int(j)
-                            pos_ori, pos_new = self._pos.index(a), i * self.n + j
-                            if not fix[pos_new]:
-                                self._pos[pos_ori], self._pos[pos_new] = self._pos[pos_new], self._pos[pos_ori]
-                                fix[pos_new] = True
+                            k = random.randrange(0, len(self))
+                            if k not in near_by and not fix[k]:
+                                self._pos[j], self._pos[k] = self._pos[k], self._pos[j]
+                                fix[i] = fix[k] = True
                                 break
                         else:
-                            raise RulesFileError
-            except (RulesFileError, ValueError):
-                print("无法实现自定义规则，将使用随机座位。")
-                print(self)
+                            raise FutureWarning
+                elif rule[0] == 'C':
+                    a = int(rule[1])
+                    for cnt in range(_MAX_RETRY_TIMES):
+                        i, j = rule[2], rule[3]
+                        if i == '*':
+                            i = random.randrange(0, self.m)
+                        if j == '*':
+                            j = random.randrange(0, self.n)
+                        i, j = int(i), int(j)
+                        pos_ori, pos_new = self._pos.index(a), i * self.n + j
+                        if not fix[pos_new]:
+                            self._pos[pos_ori], self._pos[pos_new] = self._pos[pos_new], self._pos[pos_ori]
+                            fix[pos_new] = True
+                            break
+                    else:
+                        raise FutureWarning
 
     def load(self, file_name: str):
         """从文件读取名单"""

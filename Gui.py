@@ -34,7 +34,10 @@ class _SeatingWidget(QTableWidget):
         self.gen_text()
 
     def shuffle(self):
-        self.seat.maintain()
+        try:
+            self.seat.maintain()
+        except FutureWarning:
+            print("无法实现自定义规则，将使用随机座位。")
         self.gen_text()
 
     def load(self, file_name):
