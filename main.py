@@ -12,8 +12,8 @@ Default Usage: ./main.py -m 6 -n 8 -o seat.txt -i name.txt
     -g          使用图形化界面"""
 
 
-def get_opt():
-    argv = sys.argv
+def get_opts():
+    argv = sys.argv[1:]
     res = {
         'USE_GUI': False,
         'DEFAULT_M': 6,
@@ -27,25 +27,25 @@ def get_opt():
             sys.exit(0)
         elif argv[0] == '-g':
             res['USE_GUI'] = True
+            argv = argv[1:]
         elif argv[0] == '-m':
-            argv = argv[1:]
-            res['DEFAULT_M'] = int(argv[0])
+            res['DEFAULT_M'] = int(argv[1])
+            argv = argv[2:]
         elif argv[0] == '-n':
-            argv = argv[1:]
-            res['DEFAULT_N'] = int(argv[0])
+            res['DEFAULT_N'] = int(argv[1])
+            argv = argv[2:]
         elif argv[0] in ('-o', '--output-file'):
-            argv = argv[1:]
-            res['DEFAULT_SAVE_FILE'] = argv[0]
+            res['DEFAULT_SAVE_FILE'] = argv[1]
+            argv = argv[2:]
         elif argv[0] in ('-i', '--input-file'):
-            argv = argv[1:]
-            res['DEFAULT_LOAD_FILE'] = argv[0]
-        argv = argv[1:]
+            res['DEFAULT_LOAD_FILE'] = argv[1]
+            argv = argv[2:]
     return res
 
 
 # TODO:单元测试
 
-opts = get_opt()
+opts = get_opts()
 if __name__ == '__main__':
     if opts['USE_GUI']:
         import Gui
