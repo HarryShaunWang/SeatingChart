@@ -65,7 +65,7 @@ class SeatingChart:
                 elif rule[0] == 'B':
                     a, b = int(rule[1]), int(rule[2])
                     i, j = self._pos.index(a), self._pos.index(b)
-                    near_by = (i ^ 1, i - self.n, i + self.n)
+                    near_by = (i - 1, i + 1, i - self.n, i + self.n)
                     if j in near_by:
                         for cnt in range(_MAX_RETRY_TIMES):
                             k = random.randrange(0, len(self))

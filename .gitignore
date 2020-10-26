@@ -97,3 +97,5 @@ ENV/
 user_data
 .idea
 README.html
+
+seat.txt
